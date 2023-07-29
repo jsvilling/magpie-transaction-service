@@ -1,0 +1,8 @@
+.config/
+.paket/
+.vscode/
+bin/
+deploy/
+node_modules/
+obj/
+paket-files/
