@@ -17,5 +17,8 @@ module Route =
         sprintf "/api/%s/%s" typeName methodName
 
 type ITodosApi =
-    { getTodos: unit -> Async<Todo list>
-      addTodo: Todo -> Async<Todo> }
+    { 
+    getTodos: unit -> Async<Todo list>
+    addTodo: Todo -> Async<Todo> 
+    removeTodo: Guid -> Async<Todo list>
+    }

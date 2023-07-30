@@ -4,13 +4,18 @@ open Elmish
 open Fable.Remoting.Client
 open Shared
 
-type Model = { Todos: Todo list; Input: string }
+type Model = { 
+    Todos: Todo list; 
+    Input: string 
+}
 
 type Msg =
     | GotTodos of Todo list
     | SetInput of string
     | AddTodo
     | AddedTodo of Todo
+    | RemoveTodo of Todo
+    | RemovedTodo of Todo list
 
 let todosApi =
     Remoting.createApi ()
@@ -27,6 +32,7 @@ let init () : Model * Cmd<Msg> =
 let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
     match msg with
     | GotTodos todos -> { model with Todos = todos }, Cmd.none
+    | RemovedTodo todos -> { model with Todos = todos }, Cmd.none
     | SetInput value -> { model with Input = value }, Cmd.none
     | AddTodo ->
         let todo = Todo.create model.Input
@@ -35,6 +41,10 @@ let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
 
         { model with Input = "" }, cmd
     | AddedTodo todo -> { model with Todos = model.Todos @ [ todo ] }, Cmd.none
+    | RemoveTodo todo -> 
+        let cmd = Cmd.OfAsync.perform todosApi.removeTodo (todo.Id) RemovedTodo
+        model, cmd
+
 
 open Feliz
 open Feliz.Bulma
@@ -58,7 +68,17 @@ let containerBox (model: Model) (dispatch: Msg -> unit) =
         Bulma.content [
             Html.ol [
                 for todo in model.Todos do
-                    Html.li [ prop.text todo.Description ]
+                    Html.li [ 
+                        Html.div [ 
+                            Html.span [ prop.text todo.Description ]
+                            Bulma.button.a [
+                                color.isDanger
+                                prop.onClick (fun _ -> dispatch (RemoveTodo todo))
+                                prop.text "Remove"
+                            ]
+                        ]
+                    ]
+
             ]
         ]
         Bulma.field.div [

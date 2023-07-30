@@ -6,6 +6,8 @@ open Saturn
 
 open Shared
 
+open System
+
 module Storage =
     let todos = ResizeArray()
 
@@ -15,6 +17,11 @@ module Storage =
             Ok()
         else
             Error "Invalid todo"
+
+    let removeTodo (id: Guid) = 
+        let index = todos |> Seq.findIndex(fun s -> s.Id.Equals(id))
+        todos.RemoveAt(index) |> ignore
+        Ok()
 
     do
         addTodo (Todo.create "Create new SAFE project")
@@ -32,7 +39,15 @@ let todosApi =
                     match Storage.addTodo todo with
                     | Ok () -> todo
                     | Error e -> failwith e
-            } }
+            } 
+      removeTodo = fun id -> 
+            async { 
+                return
+                    match Storage.removeTodo id with 
+                    | Ok () -> Storage.todos |> List.ofSeq
+                    | Error e -> failwith e
+            }
+    }
 
 let webApp =
     Remoting.createApi ()
